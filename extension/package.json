@@ -4,13 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "webpack"
+    "build": "rm -rf dist && webpack",
+    "dev": "pnpm build --watch"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/chrome": "^0.0.237",
+    "copy-webpack-plugin": "^11.0.0",
     "ts-loader": "^9.4.3",
     "typescript": "^5.1.3",
     "webpack": "^5.86.0",

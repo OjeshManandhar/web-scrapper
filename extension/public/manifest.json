@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "E-Commerce Scrapper",
+  "description": "This extension is made for demonstration purposes only. This extension scrapes data from e-commerce websites.",
+  "version": "1.0",
+  "action": {
+    "default_title": "Start scrapping"
+  },
+  "permissions": ["activeTab", "scripting"],
+  "background": {
+    "service_worker": "background.js"
+  }
+}
