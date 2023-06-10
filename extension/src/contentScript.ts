@@ -1,12 +1,17 @@
+import {
+  Events,
+  TMessage,
+  isElementSelected,
+  findNearestCommonAncestor,
+} from './utils';
+
 const selectedElements: HTMLElement[] = [];
 
-// listen for click events on the page
-// save the clicked elements in selectedElements
-document.addEventListener('click', event => {
+const clickHandler = (event: MouseEvent) => {
   event.preventDefault();
   const elem = event.target as HTMLElement;
   if (elem.tagName.toLowerCase() !== 'div') {
-    const isSelected = isElementSelected(elem);
+    const isSelected = isElementSelected(elem, selectedElements);
     if (isSelected) {
       elem.style.outline = 'none';
       elem.style.background = 'none';
@@ -19,39 +24,27 @@ document.addEventListener('click', event => {
 
       selectedElements.push(elem);
     }
-
-    console.log('selectedElements', selectedElements);
-    console.log('ancestor', findNearestCommonAncestor());
   }
-});
+};
 
-function isElementSelected(elem: HTMLElement) {
-  return selectedElements.includes(elem);
-}
+chrome.runtime.onMessage.addListener(
+  // (message: TMessage, sender, sendResponse) => {
+  (message: TMessage) => {
+    const { type, value } = message;
 
-function findNearestCommonAncestor() {
-  if (selectedElements.length === 0) return null;
-  if (selectedElements.length === 1) return selectedElements[0];
-
-  let ancestor: HTMLElement | null = selectedElements[0];
-
-  while (1) {
-    let foundAncestor = true;
-    if (ancestor === null) return null;
-
-    for (let i = 1; i < selectedElements.length; i++) {
-      const containsNode = ancestor.contains(selectedElements[i]);
-
-      if (!containsNode) {
-        foundAncestor = false;
+    switch (type) {
+      case Events.START:
+        document.addEventListener('click', clickHandler);
         break;
-      }
+      case Events.STOP:
+        document.removeEventListener('click', clickHandler);
+        break;
+      case Events.SEND:
+        console.log('selectedElements', selectedElements);
+
+        const ancestor = findNearestCommonAncestor(selectedElements);
+        console.log('ancestor', ancestor);
+        break;
     }
-
-    if (foundAncestor) break;
-
-    ancestor = ancestor.parentElement;
-  }
-
-  return ancestor;
-}
+  },
+);

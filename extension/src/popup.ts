@@ -1,7 +1,15 @@
+import { Events, TMessage, getActiveTab } from './utils';
+
 const startBtn = document.getElementById('start-btn');
 
-function startCapture() {
-  console.log('start capture');
+async function startCapture() {
+  const activeTab = await getActiveTab();
+
+  if (activeTab.id) {
+    chrome.tabs.sendMessage(activeTab.id, {
+      type: Events.START,
+    } as TMessage);
+  }
 }
 
 if (startBtn) {
