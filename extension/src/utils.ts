@@ -1,12 +1,19 @@
-export enum Events {
+export enum MessageType {
   START = 'START',
   STOP = 'STOP',
   SEND = 'SEND',
+  SYNC = 'SYNC',
 }
 
 export type TMessage = {
-  type: Events;
+  type: MessageType;
   value?: any;
+};
+
+export type TState = {
+  canSend: boolean;
+  isCapturing: boolean;
+  noOfItemsSelected: number;
 };
 
 export async function getActiveTab() {

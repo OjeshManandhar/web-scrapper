@@ -1,10 +1,16 @@
 import {
-  Events,
+  MessageType,
   TMessage,
+  TState,
   isElementSelected,
   findNearestCommonAncestor,
 } from './utils';
 
+const state: TState = {
+  canSend: false,
+  isCapturing: false,
+  noOfItemsSelected: 0,
+};
 const selectedElements: HTMLElement[] = [];
 
 const clickHandler = (event: MouseEvent) => {
@@ -29,17 +35,30 @@ const clickHandler = (event: MouseEvent) => {
 
 chrome.runtime.onMessage.addListener(
   // (message: TMessage, sender, sendResponse) => {
-  (message: TMessage) => {
-    const { type, value } = message;
+  (message: TMessage, sender, sendResponse: (data: TState) => void) => {
+    const { type } = message;
+    console.log('message', message);
 
     switch (type) {
-      case Events.START:
+      case MessageType.SYNC:
+        sendResponse(state);
+        break;
+      case MessageType.START:
         document.addEventListener('click', clickHandler);
+        state.canSend = false;
+        state.isCapturing = true;
+        state.noOfItemsSelected = selectedElements.length;
+        sendResponse(state);
         break;
-      case Events.STOP:
+      case MessageType.STOP:
         document.removeEventListener('click', clickHandler);
+        state.canSend = selectedElements.length > 0;
+        state.isCapturing = false;
+        state.noOfItemsSelected = selectedElements.length;
+        sendResponse(state);
         break;
-      case Events.SEND:
+      case MessageType.SEND:
+        console.log('state:', state);
         console.log('selectedElements', selectedElements);
 
         const ancestor = findNearestCommonAncestor(selectedElements);
