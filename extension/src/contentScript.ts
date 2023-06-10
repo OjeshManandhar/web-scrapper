@@ -8,9 +8,15 @@ document.addEventListener('click', event => {
   if (elem.tagName.toLowerCase() !== 'div') {
     const isSelected = isElementSelected(elem);
     if (isSelected) {
+      elem.style.outline = 'none';
+      elem.style.background = 'none';
+
       const index = selectedElements.indexOf(elem);
       selectedElements.splice(index, 1);
     } else {
+      elem.style.background = 'rgb(255, 0, 0, 0.25)';
+      elem.style.outline = '2px solid rgb(255, 0, 0, 0.5)';
+
       selectedElements.push(elem);
     }
 
