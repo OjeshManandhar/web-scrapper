@@ -4,12 +4,10 @@
   "description": "This extension is made for demonstration purposes only. This extension scrapes data from e-commerce websites.",
   "version": "1.0",
   "action": {
-    "default_title": "Start scrapping"
+    "default_title": "Start scrapping",
+    "default_popup": "popup.html"
   },
-  "permissions": ["activeTab", "scripting"],
-  "background": {
-    "service_worker": "background.js"
-  },
+  "permissions": ["scripting"],
   "content_scripts": [
     {
       "matches": ["https://www.daraz.com.np/*"],
