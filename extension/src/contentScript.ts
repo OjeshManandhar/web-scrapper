@@ -8,6 +8,7 @@ import {
 
 const state: TState = {
   canSend: false,
+  sending: false,
   isCapturing: false,
   noOfItemsSelected: 0,
 };
@@ -36,7 +37,7 @@ const clickHandler = (event: MouseEvent) => {
 chrome.runtime.onMessage.addListener(
   // (message: TMessage, sender, sendResponse) => {
   (message: TMessage, sender, sendResponse: (data: TState) => void) => {
-    const { type } = message;
+    const { type, value } = message;
     console.log('message', message);
 
     switch (type) {
@@ -46,6 +47,7 @@ chrome.runtime.onMessage.addListener(
       case MessageType.START:
         document.addEventListener('click', clickHandler);
         state.canSend = false;
+        state.sending = false;
         state.isCapturing = true;
         state.noOfItemsSelected = selectedElements.length;
         sendResponse(state);
@@ -53,16 +55,26 @@ chrome.runtime.onMessage.addListener(
       case MessageType.STOP:
         document.removeEventListener('click', clickHandler);
         state.canSend = selectedElements.length > 0;
+        state.sending = false;
         state.isCapturing = false;
         state.noOfItemsSelected = selectedElements.length;
         sendResponse(state);
         break;
       case MessageType.SEND:
-        console.log('state:', state);
-        console.log('selectedElements', selectedElements);
+        const data = {
+          url: location.href,
+          projectName: value,
+          selectedElements: selectedElements,
+          ancestor: findNearestCommonAncestor(selectedElements),
+        };
 
-        const ancestor = findNearestCommonAncestor(selectedElements);
-        console.log('ancestor', ancestor);
+        console.log('data:', data);
+
+        state.canSend = false;
+        state.sending = true;
+        state.isCapturing = false;
+        state.noOfItemsSelected = selectedElements.length;
+        sendResponse(state);
         break;
     }
   },

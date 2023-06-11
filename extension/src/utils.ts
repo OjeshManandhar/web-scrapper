@@ -12,6 +12,7 @@ export type TMessage = {
 
 export type TState = {
   canSend: boolean;
+  sending: boolean;
   isCapturing: boolean;
   noOfItemsSelected: number;
 };

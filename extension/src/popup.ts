@@ -2,6 +2,7 @@ import { MessageType, TMessage, TState, getActiveTab } from './utils';
 
 let state: TState = {
   canSend: false,
+  sending: false,
   isCapturing: false,
   noOfItemsSelected: 0,
 };
@@ -23,13 +24,14 @@ async function updateUI(sync = false) {
     ? MessageType.STOP
     : MessageType.START;
 
+  let value = undefined as string | null | undefined;
   if (type === MessageType.SEND) {
     if (!input) {
       alert('Some thing went wrong.');
       return;
     }
 
-    const value = (input as HTMLInputElement).value;
+    value = (input as HTMLInputElement).value;
     if (!value) {
       alert('Please enter project name.');
       return;
@@ -38,7 +40,7 @@ async function updateUI(sync = false) {
 
   chrome.tabs.sendMessage(
     activeTab.id,
-    { type } as TMessage,
+    { type, value } as TMessage,
     (data: TState) => {
       state = data;
 
