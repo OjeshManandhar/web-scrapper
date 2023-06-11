@@ -36,7 +36,7 @@ const clickHandler = (event: MouseEvent) => {
 
 chrome.runtime.onMessage.addListener(
   // (message: TMessage, sender, sendResponse) => {
-  (message: TMessage, sender, sendResponse: (data: TState) => void) => {
+  async (message: TMessage, sender, sendResponse: (data: TState) => void) => {
     const { type, value } = message;
     console.log('message', message);
 
@@ -68,7 +68,16 @@ chrome.runtime.onMessage.addListener(
           ancestor: findNearestCommonAncestor(selectedElements),
         };
 
-        console.log('data:', data);
+        fetch('http://localhost:3000', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        })
+          .then(res => res.json())
+          .then(res => console.log('res:', res))
+          .catch(err => console.log('err:', err));
 
         state.canSend = false;
         state.sending = true;

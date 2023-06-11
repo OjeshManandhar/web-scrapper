@@ -1,4 +1,5 @@
 // packages
+import cors from 'cors';
 import express from 'express';
 
 // controllers
@@ -7,6 +8,7 @@ import { crawl } from './controller';
 const app = express();
 const PORT = 3000;
 
+app.use(cors());
 app.use(express.json());
 
 app.post('/', crawl);
