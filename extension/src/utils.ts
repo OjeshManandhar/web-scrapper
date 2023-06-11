@@ -17,6 +17,12 @@ export type TState = {
   noOfItemsSelected: number;
 };
 
+export type TElement = {
+  tagName: string;
+  classNames: string;
+  id?: string;
+};
+
 export async function getActiveTab() {
   const tabs = await chrome.tabs.query({
     currentWindow: true,
@@ -58,4 +64,26 @@ export function findNearestCommonAncestor(selectedElements: HTMLElement[]) {
   }
 
   return ancestor;
+}
+
+export function formatAnElementForRequest(elem: HTMLElement): TElement {
+  const element: TElement = {
+    tagName: elem.tagName.toLowerCase(),
+    classNames: elem.className,
+    id: elem.id,
+  };
+
+  return element;
+}
+
+export function formatSelectedElementsForRequest(
+  selectedElements: HTMLElement[],
+): TElement[] {
+  const formattedElements: TElement[] = [];
+
+  selectedElements.forEach(elem => {
+    formattedElements.push(formatAnElementForRequest(elem));
+  });
+
+  return formattedElements;
 }

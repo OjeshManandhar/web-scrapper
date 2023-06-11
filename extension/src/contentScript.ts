@@ -4,6 +4,8 @@ import {
   TState,
   isElementSelected,
   findNearestCommonAncestor,
+  formatSelectedElementsForRequest,
+  formatAnElementForRequest,
 } from './utils';
 
 const state: TState = {
@@ -61,11 +63,12 @@ chrome.runtime.onMessage.addListener(
         sendResponse(state);
         break;
       case MessageType.SEND:
+        const ancestor = findNearestCommonAncestor(selectedElements);
         const data = {
           url: location.href,
           projectName: value,
-          selectedElements: selectedElements,
-          ancestor: findNearestCommonAncestor(selectedElements),
+          selectedElements: formatSelectedElementsForRequest(selectedElements),
+          ancestor: ancestor ? formatAnElementForRequest(ancestor) : null,
         };
 
         fetch('http://localhost:3000', {
