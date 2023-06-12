@@ -1,4 +1,8 @@
-import puppeteer from 'puppeteer';
+import puppeteer, { Page } from 'puppeteer';
+
+const MAX_PAGE = 15;
+const DARAZ_NEXT_PAGE_QUERY = 'li.ant-pagination-next';
+const DARAZ_PAGINATION_DISABLED_CLASS = 'ant-pagination-disabled';
 
 export type TElement = {
   tagName: string;
@@ -30,15 +34,12 @@ function createSelector(element: TElement) {
   return tagName;
 }
 
-export async function scrapContent(data: TBody) {
-  const browser = await puppeteer.launch({ headless: 'new' });
-  const page = await browser.newPage();
-  await page.goto(data.url);
-
+async function scrapContentFromSinglePage(
+  page: Page,
+  data: TBody,
+): Promise<string[][]> {
   const ancestorSelector = createSelector(data.ancestor);
   await page.waitForSelector(ancestorSelector);
-
-  await page.exposeFunction('createSelector', createSelector);
 
   const scrappedContent = await page.evaluate(
     (data: TBody, ancestorSelector: string) => {
@@ -77,7 +78,38 @@ export async function scrapContent(data: TBody) {
     ancestorSelector,
   );
 
-  console.log('contents:', scrappedContent);
+  return scrappedContent;
+}
+
+export async function scrapContent(data: TBody) {
+  const browser = await puppeteer.launch({ headless: 'new' });
+  const page = await browser.newPage();
+  await page.goto(data.url);
+
+  const scrappedContent: string[][] = [];
+  for (let i = 0; i < MAX_PAGE; i++) {
+    const content = await scrapContentFromSinglePage(page, data);
+    scrappedContent.push(...content);
+
+    const nextPageAvailable = await page.evaluate(
+      (selector: string, disabledClass: string) => {
+        const nextPage = document.querySelector(selector);
+
+        if (!nextPage) return false;
+
+        return ![...nextPage.classList].includes(disabledClass);
+      },
+      DARAZ_NEXT_PAGE_QUERY,
+      DARAZ_PAGINATION_DISABLED_CLASS,
+    );
+
+    if (!nextPageAvailable) break;
+
+    const nextPage = await page.waitForSelector(DARAZ_NEXT_PAGE_QUERY);
+    await nextPage?.click();
+  }
+
+  console.log('finalResult:', scrappedContent.length);
 
   await browser.close();
 
