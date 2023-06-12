@@ -20,27 +20,29 @@ const clickHandler = (event: MouseEvent) => {
   event.preventDefault();
   let elem = event.target as HTMLElement;
 
-  while (1) {
-    const { id, className, parentElement } = elem;
+  if (elem.tagName.toLowerCase() !== 'div') {
+    while (1) {
+      const { id, className, parentElement } = elem;
 
-    if (id || className) break;
+      if (id || className) break;
 
-    if (parentElement == null) return;
-    elem = parentElement;
-  }
+      if (parentElement == null) return;
+      elem = parentElement;
+    }
 
-  const isSelected = isElementSelected(elem, selectedElements);
-  if (isSelected) {
-    elem.style.outline = 'none';
-    elem.style.background = 'none';
+    const isSelected = isElementSelected(elem, selectedElements);
+    if (isSelected) {
+      elem.style.outline = 'none';
+      elem.style.background = 'none';
 
-    const index = selectedElements.indexOf(elem);
-    selectedElements.splice(index, 1);
-  } else {
-    elem.style.background = 'rgb(255, 0, 0, 0.25)';
-    elem.style.outline = '2px solid rgb(255, 0, 0, 0.5)';
+      const index = selectedElements.indexOf(elem);
+      selectedElements.splice(index, 1);
+    } else {
+      elem.style.background = 'rgb(255, 0, 0, 0.25)';
+      elem.style.outline = '2px solid rgb(255, 0, 0, 0.5)';
 
-    selectedElements.push(elem);
+      selectedElements.push(elem);
+    }
   }
 };
 
