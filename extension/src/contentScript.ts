@@ -1,11 +1,11 @@
 import {
-  MessageType,
-  TMessage,
   TState,
+  TMessage,
+  MessageType,
   isElementSelected,
   findNearestCommonAncestor,
-  formatSelectedElementsForRequest,
   formatAnElementForRequest,
+  formatSelectedElementsForRequest,
 } from './utils';
 
 const state: TState = {
@@ -18,21 +18,29 @@ const selectedElements: HTMLElement[] = [];
 
 const clickHandler = (event: MouseEvent) => {
   event.preventDefault();
-  const elem = event.target as HTMLElement;
-  if (elem.tagName.toLowerCase() !== 'div') {
-    const isSelected = isElementSelected(elem, selectedElements);
-    if (isSelected) {
-      elem.style.outline = 'none';
-      elem.style.background = 'none';
+  let elem = event.target as HTMLElement;
 
-      const index = selectedElements.indexOf(elem);
-      selectedElements.splice(index, 1);
-    } else {
-      elem.style.background = 'rgb(255, 0, 0, 0.25)';
-      elem.style.outline = '2px solid rgb(255, 0, 0, 0.5)';
+  while (1) {
+    const { id, className, parentElement } = elem;
 
-      selectedElements.push(elem);
-    }
+    if (id || className) break;
+
+    if (parentElement == null) return;
+    elem = parentElement;
+  }
+
+  const isSelected = isElementSelected(elem, selectedElements);
+  if (isSelected) {
+    elem.style.outline = 'none';
+    elem.style.background = 'none';
+
+    const index = selectedElements.indexOf(elem);
+    selectedElements.splice(index, 1);
+  } else {
+    elem.style.background = 'rgb(255, 0, 0, 0.25)';
+    elem.style.outline = '2px solid rgb(255, 0, 0, 0.5)';
+
+    selectedElements.push(elem);
   }
 };
 
