@@ -71,6 +71,8 @@ chrome.runtime.onMessage.addListener(
           ancestor: ancestor ? formatAnElementForRequest(ancestor) : null,
         };
 
+        console.log('data:', data);
+
         fetch('http://localhost:3000', {
           method: 'POST',
           headers: {
