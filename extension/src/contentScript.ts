@@ -83,7 +83,7 @@ chrome.runtime.onMessage.addListener(
 
         console.log('data:', data);
 
-        fetch('http://localhost:3000', {
+        fetch('http://localhost:3000/projects', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

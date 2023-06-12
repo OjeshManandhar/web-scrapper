@@ -1,14 +1,32 @@
 // utils
-import { TBody, scrapContent } from './utils';
+import { Project } from './model';
+import { TProject, scrapContent } from './utils';
 
 // types
 import type { Request, Response } from 'express';
 
+export async function getProjects(req: Request, res: Response) {
+  const projects = await Project.find({});
+
+  return res.json(projects);
+}
+
 export async function crawl(req: Request, res: Response) {
-  const body = req.body as TBody;
+  const body = req.body as TProject;
 
-  console.log('body:', body);
-  scrapContent(body);
+  const scrappedContent = await scrapContent(body);
 
-  return res.json({ msg: 'Done' });
+  const project = new Project({
+    name: body.projectName,
+    url: body.url,
+    params: {
+      ancestor: body.ancestor,
+      selectedElements: body.selectedElements,
+    },
+    records: scrappedContent,
+  });
+
+  project.save();
+
+  return res.json({ scrapContent: scrappedContent.length });
 }

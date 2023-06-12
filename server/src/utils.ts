@@ -1,3 +1,4 @@
+// packages
 import puppeteer, { Page } from 'puppeteer';
 
 const MAX_PAGE = 15;
@@ -10,7 +11,7 @@ export type TElement = {
   id?: string;
 };
 
-export type TBody = {
+export type TProject = {
   url: string;
   projectName: string;
   selectedElements: TElement[];
@@ -36,13 +37,13 @@ function createSelector(element: TElement) {
 
 async function scrapContentFromSinglePage(
   page: Page,
-  data: TBody,
+  data: TProject,
 ): Promise<string[][]> {
   const ancestorSelector = createSelector(data.ancestor);
   await page.waitForSelector(ancestorSelector);
 
   const scrappedContent = await page.evaluate(
-    (data: TBody, ancestorSelector: string) => {
+    (data: TProject, ancestorSelector: string) => {
       const ancestors = document.querySelectorAll(ancestorSelector);
 
       const contents: string[][] = [];
@@ -81,7 +82,7 @@ async function scrapContentFromSinglePage(
   return scrappedContent;
 }
 
-export async function scrapContent(data: TBody) {
+export async function scrapContent(data: TProject) {
   const browser = await puppeteer.launch({ headless: 'new' });
   const page = await browser.newPage();
   await page.goto(data.url);
@@ -108,8 +109,6 @@ export async function scrapContent(data: TBody) {
     const nextPage = await page.waitForSelector(DARAZ_NEXT_PAGE_QUERY);
     await nextPage?.click();
   }
-
-  console.log('finalResult:', scrappedContent.length);
 
   await browser.close();
 
