@@ -1,8 +1,11 @@
 export enum MessageType {
-  START = 'START',
-  STOP = 'STOP',
+  CAPTURE = 'CAPTURE',
+  STOP_CAPTURE = 'STOP_CAPTURE',
   SEND = 'SEND',
   SYNC = 'SYNC',
+
+  UPDATE_FIELD = 'UPDATE_FIELD',
+  DELETE_FIELD = 'DELETE_FIELD',
 }
 
 export type TMessage = {
@@ -10,14 +13,24 @@ export type TMessage = {
   value?: any;
 };
 
-export type TState = {
-  canSend: boolean;
+export type TGlobalState = {
   sending: boolean;
   isCapturing: boolean;
-  noOfItemsSelected: number;
 };
 
-export type TElement = {
+export type TCapturedElements = Array<{
+  id: string;
+  name: string;
+  element: HTMLElement;
+}>;
+
+export type TDisplayElementFormat = {
+  id: string;
+  name: string;
+  content: string | null;
+};
+
+export type TReqElementFormat = {
   tagName: string;
   classNames: string;
   id?: string;
@@ -32,25 +45,29 @@ export async function getActiveTab() {
   return tabs[0];
 }
 
-export function isElementSelected(
+export function isElementCaptured(
   elem: HTMLElement,
-  selectedElements: HTMLElement[],
+  selectedElements: TCapturedElements,
 ) {
-  return selectedElements.includes(elem);
+  const index = selectedElements.findIndex(
+    selectedElement => selectedElement.element === elem,
+  );
+
+  return index !== -1;
 }
 
-export function findNearestCommonAncestor(selectedElements: HTMLElement[]) {
+export function findNearestCommonAncestor(selectedElements: TCapturedElements) {
   if (selectedElements.length === 0) return null;
-  if (selectedElements.length === 1) return selectedElements[0];
+  if (selectedElements.length === 1) return selectedElements[0].element;
 
-  let ancestor: HTMLElement | null = selectedElements[0];
+  let ancestor: HTMLElement | null = selectedElements[0].element;
 
   while (1) {
     let foundAncestor = true;
     if (ancestor === null) return null;
 
     for (let i = 1; i < selectedElements.length; i++) {
-      const containsNode = ancestor.contains(selectedElements[i]);
+      const containsNode = ancestor.contains(selectedElements[i].element);
 
       if (!containsNode) {
         foundAncestor = false;
@@ -66,8 +83,34 @@ export function findNearestCommonAncestor(selectedElements: HTMLElement[]) {
   return ancestor;
 }
 
-export function formatAnElementForRequest(elem: HTMLElement): TElement {
-  const element: TElement = {
+export function formatCapturedElementsForDisplay(
+  capturedElements: TCapturedElements,
+): Array<TDisplayElementFormat> {
+  const formattedElements: Array<TDisplayElementFormat> = [];
+
+  capturedElements.forEach(elem => {
+    let content = elem.element.textContent;
+
+    if (elem.element.tagName.toLowerCase() === 'img') {
+      content = 'Image';
+    } else if (elem.element.tagName.toLowerCase() === 'video') {
+      content = 'Video';
+    }
+
+    formattedElements.push({
+      id: elem.id,
+      name: elem.name,
+      content,
+    });
+  });
+
+  return formattedElements;
+}
+
+export function formatAnElementForRequest(
+  elem: HTMLElement,
+): TReqElementFormat {
+  const element: TReqElementFormat = {
     tagName: elem.tagName.toLowerCase(),
     classNames: elem.className,
     id: elem.id,
@@ -77,12 +120,16 @@ export function formatAnElementForRequest(elem: HTMLElement): TElement {
 }
 
 export function formatSelectedElementsForRequest(
-  selectedElements: HTMLElement[],
-): TElement[] {
-  const formattedElements: TElement[] = [];
+  selectedElements: TCapturedElements,
+): Array<{ name: string; element: TReqElementFormat }> {
+  const formattedElements: Array<{ name: string; element: TReqElementFormat }> =
+    [];
 
   selectedElements.forEach(elem => {
-    formattedElements.push(formatAnElementForRequest(elem));
+    formattedElements.push({
+      name: elem.name,
+      element: formatAnElementForRequest(elem.element),
+    });
   });
 
   return formattedElements;

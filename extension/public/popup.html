@@ -6,20 +6,18 @@
 
   <body>
     <div class="container">
-      <input id="project-name" type="text" placeholder="Enter project name" />
+      <input id="project-name" type="text" placeholder="Project name" />
 
       <div class="capture-container">
-        <div id="captured-fields" class="capture"></div>
+        <button id="capture-btn" class="capture-btn">Start capturing</button>
 
-        <div id="capture-new" class="capture">
-          <input id="capture-input" type="text" placeholder="Name" />
-          <button id="capture-field">Select</button>
-          <button id="capture-cancel" disabled>Cancel</button>
-        </div>
+        <ul id="captured-fields" class="capture"></ul>
       </div>
 
-      <button id="scrape">Scrape</button>
+      <button id="scrape-btn">Scrape</button>
     </div>
+
+    <p id="alert" class="alert"></p>
 
     <script src="popup.js"></script>
   </body>

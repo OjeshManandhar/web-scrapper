@@ -1,22 +1,25 @@
 import {
-  TState,
+  TGlobalState,
   TMessage,
   MessageType,
-  isElementSelected,
+  isElementCaptured,
+  TCapturedElements,
+  TDisplayElementFormat,
   findNearestCommonAncestor,
   formatAnElementForRequest,
   formatSelectedElementsForRequest,
+  formatCapturedElementsForDisplay,
 } from './utils';
 
-const state: TState = {
-  canSend: false,
+const globalState: TGlobalState = {
   sending: false,
   isCapturing: false,
-  noOfItemsSelected: 0,
 };
-const selectedElements: HTMLElement[] = [];
 
-const clickHandler = (event: MouseEvent) => {
+let capturedElementId = 0;
+const capturedElements: TCapturedElements = [];
+
+const captureHandler = (event: MouseEvent) => {
   event.preventDefault();
   let elem = event.target as HTMLElement;
 
@@ -30,58 +33,80 @@ const clickHandler = (event: MouseEvent) => {
       elem = parentElement;
     }
 
-    const isSelected = isElementSelected(elem, selectedElements);
-    if (isSelected) {
+    const isCaptured = isElementCaptured(elem, capturedElements);
+    if (isCaptured) {
       elem.style.outline = 'none';
       elem.style.background = 'none';
 
-      const index = selectedElements.indexOf(elem);
-      selectedElements.splice(index, 1);
+      const index = capturedElements.findIndex(e => e.element === elem);
+      if (index !== -1) {
+        capturedElements.splice(index, 1);
+      }
     } else {
       elem.style.background = 'rgb(255, 0, 0, 0.25)';
       elem.style.outline = '2px solid rgb(255, 0, 0, 0.5)';
 
-      selectedElements.push(elem);
+      capturedElementId += 1;
+      capturedElements.push({
+        id: '' + capturedElementId,
+        name: `field-${capturedElementId}`,
+        element: elem,
+      });
     }
   }
 };
 
 chrome.runtime.onMessage.addListener(
-  // (message: TMessage, sender, sendResponse) => {
-  async (message: TMessage, sender, sendResponse: (data: TState) => void) => {
+  async (
+    message: TMessage,
+    sender,
+    sendResponse: (data: {
+      state: TGlobalState;
+      capturedElements: TDisplayElementFormat[];
+    }) => void,
+  ) => {
     const { type, value } = message;
-    console.log('message', message);
 
     switch (type) {
       case MessageType.SYNC:
-        sendResponse(state);
+        sendResponse({
+          state: globalState,
+          capturedElements: formatCapturedElementsForDisplay(capturedElements),
+        });
+
         break;
-      case MessageType.START:
-        document.addEventListener('click', clickHandler);
-        state.canSend = false;
-        state.sending = false;
-        state.isCapturing = true;
-        state.noOfItemsSelected = selectedElements.length;
-        sendResponse(state);
+      case MessageType.CAPTURE:
+        document.addEventListener('click', captureHandler);
+
+        globalState.sending = false;
+        globalState.isCapturing = true;
+
+        sendResponse({
+          state: globalState,
+          capturedElements: formatCapturedElementsForDisplay(capturedElements),
+        });
+
         break;
-      case MessageType.STOP:
-        document.removeEventListener('click', clickHandler);
-        state.canSend = selectedElements.length > 0;
-        state.sending = false;
-        state.isCapturing = false;
-        state.noOfItemsSelected = selectedElements.length;
-        sendResponse(state);
+      case MessageType.STOP_CAPTURE:
+        document.removeEventListener('click', captureHandler);
+
+        globalState.sending = false;
+        globalState.isCapturing = false;
+
+        sendResponse({
+          state: globalState,
+          capturedElements: formatCapturedElementsForDisplay(capturedElements),
+        });
+
         break;
       case MessageType.SEND:
-        const ancestor = findNearestCommonAncestor(selectedElements);
+        const ancestor = findNearestCommonAncestor(capturedElements);
         const data = {
           url: location.href,
           projectName: value,
-          selectedElements: formatSelectedElementsForRequest(selectedElements),
+          selectedElements: formatSelectedElementsForRequest(capturedElements),
           ancestor: ancestor ? formatAnElementForRequest(ancestor) : null,
         };
-
-        console.log('data:', data);
 
         fetch('http://localhost:3000/projects', {
           method: 'POST',
@@ -94,11 +119,46 @@ chrome.runtime.onMessage.addListener(
           .then(res => console.log('res:', res))
           .catch(err => console.log('err:', err));
 
-        state.canSend = false;
-        state.sending = true;
-        state.isCapturing = false;
-        state.noOfItemsSelected = selectedElements.length;
-        sendResponse(state);
+        globalState.sending = true;
+        globalState.isCapturing = false;
+        sendResponse({
+          state: globalState,
+          capturedElements: formatCapturedElementsForDisplay(capturedElements),
+        });
+        break;
+      case MessageType.UPDATE_FIELD:
+        const index = capturedElements.findIndex(e => e.id === value.id);
+        if (index !== -1) {
+          capturedElements[index].name = value.name;
+        }
+
+        globalState.sending = false;
+        globalState.isCapturing = false;
+
+        sendResponse({
+          state: globalState,
+          capturedElements: formatCapturedElementsForDisplay(capturedElements),
+        });
+
+        break;
+      case MessageType.DELETE_FIELD:
+        const idx = capturedElements.findIndex(e => e.id === value.id);
+        if (idx !== -1) {
+          const elem = capturedElements[idx].element;
+          elem.style.outline = 'none';
+          elem.style.background = 'none';
+
+          capturedElements.splice(idx, 1);
+        }
+
+        globalState.sending = false;
+        globalState.isCapturing = false;
+
+        sendResponse({
+          state: globalState,
+          capturedElements: formatCapturedElementsForDisplay(capturedElements),
+        });
+
         break;
     }
   },

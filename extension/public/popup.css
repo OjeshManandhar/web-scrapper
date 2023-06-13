@@ -43,12 +43,46 @@ button:disabled {
   margin: 10px;
 }
 
+.capture-btn {
+  display: block;
+  margin: 0px auto;
+}
+
 .capture {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
   gap: 5px;
 }
 
-.capture input {
-  min-width: 0;
+.capture .group {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 5px;
+}
+
+.capture .group input {
+  width: 50%;
+  min-width: 50%;
+  max-width: 50%;
+}
+
+.capture .group span {
+  flex-grow: 1;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.capture .group img {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.alert {
+  color: rgb(163, 27, 27);
+  font-size: 14px;
+  margin: 10px 0;
+  text-align: center;
 }

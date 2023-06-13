@@ -3,6 +3,12 @@
   "name": "E-Commerce Scrapper",
   "description": "This extension is made for demonstration purposes only. This extension scrapes data from e-commerce websites.",
   "version": "1.0",
+  "web_accessible_resources": [
+    {
+      "resources": ["assets/delete.png", "assets/edit.png"],
+      "matches": ["https://*.daraz.com.np/*"]
+    }
+  ],
   "action": {
     "default_title": "Start scrapping",
     "default_popup": "popup.html"
@@ -10,7 +16,7 @@
   "permissions": ["scripting"],
   "content_scripts": [
     {
-      "matches": ["https://www.daraz.com.np/*"],
+      "matches": ["https://*.daraz.com.np/*"],
       "js": ["contentScript.js"]
     }
   ]
