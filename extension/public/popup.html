@@ -5,12 +5,21 @@
   </head>
 
   <body>
-    <div class="row">
-      <input id="project-name" type="text" />
-      <button id="btn" class="btn">Start</button>
-    </div>
+    <div class="container">
+      <input id="project-name" type="text" placeholder="Enter project name" />
 
-    <div id="selected-count" class="selected-count"></div>
+      <div class="capture-container">
+        <div id="captured-fields" class="capture"></div>
+
+        <div id="capture-new" class="capture">
+          <input id="capture-input" type="text" placeholder="Name" />
+          <button id="capture-field">Select</button>
+          <button id="capture-cancel" disabled>Cancel</button>
+        </div>
+      </div>
+
+      <button id="scrape">Scrape</button>
+    </div>
 
     <script src="popup.js"></script>
   </body>
