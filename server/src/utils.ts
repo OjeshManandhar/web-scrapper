@@ -14,8 +14,15 @@ export type TElement = {
 export type TProject = {
   url: string;
   projectName: string;
-  selectedElements: TElement[];
+  selectedElements: Array<{
+    name: string;
+    element: TElement;
+  }>;
   ancestor: TElement;
+};
+
+export type TRecord = {
+  [index: string]: string | null;
 };
 
 function createSelector(element: TElement) {
@@ -38,18 +45,20 @@ function createSelector(element: TElement) {
 async function scrapContentFromSinglePage(
   page: Page,
   data: TProject,
-): Promise<string[][]> {
+): Promise<TRecord[]> {
   const ancestorSelector = createSelector(data.ancestor);
   await page.waitForSelector(ancestorSelector);
 
   const scrappedContent = await page.evaluate(
     (data: TProject, ancestorSelector: string) => {
+      const contents: TRecord[] = [];
       const ancestors = document.querySelectorAll(ancestorSelector);
 
-      const contents: string[][] = [];
       ancestors.forEach(ancestor => {
-        const content = data.selectedElements.map(element => {
-          const { tagName, classNames, id } = element;
+        const content: TRecord = {};
+
+        data.selectedElements.forEach(elem => {
+          const { tagName, classNames, id } = elem.element;
 
           let selector = tagName;
           if (id) {
@@ -63,14 +72,14 @@ async function scrapContentFromSinglePage(
 
           const selectedElement = ancestor.querySelector(selector);
 
-          if (element.tagName === 'img') {
-            return selectedElement?.getAttribute('src');
+          if (elem.element.tagName === 'img') {
+            content[elem.name] = selectedElement?.getAttribute('src') ?? null;
           } else {
-            return selectedElement?.textContent;
+            content[elem.name] = selectedElement?.textContent ?? null;
           }
         });
 
-        contents.push(content as string[]);
+        contents.push(content);
       });
 
       return contents;
@@ -87,7 +96,7 @@ export async function scrapContent(data: TProject) {
   const page = await browser.newPage();
   await page.goto(data.url);
 
-  const scrappedContent: string[][] = [];
+  const scrappedContent: TRecord[] = [];
   for (let i = 0; i < MAX_PAGE; i++) {
     const content = await scrapContentFromSinglePage(page, data);
     scrappedContent.push(...content);

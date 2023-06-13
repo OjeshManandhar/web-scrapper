@@ -16,9 +16,12 @@ const projectSchema = new Schema(
     url: String,
     params: {
       ancestor: { type: elementSchema, required: true },
-      selectedElements: { type: [elementSchema], required: true },
+      selectedElements: {
+        type: [{ name: String, element: elementSchema }],
+        required: true,
+      },
     },
-    records: { type: [[String]], required: true },
+    records: { type: [{ type: Map, of: String }], required: true },
   },
   { timestamps: true },
 );
