@@ -17,7 +17,44 @@ const globalState: TGlobalState = {
 };
 
 let capturedElementId = 0;
+let prevAncestors: HTMLElement[] | null = null;
 const capturedElements: TCapturedElements = [];
+
+function highlightAncestors() {
+  if (prevAncestors) {
+    prevAncestors.forEach(ancestor => {
+      ancestor.style.outline = 'none';
+    });
+  }
+
+  const mainAncestor = findNearestCommonAncestor(capturedElements);
+  if (mainAncestor) {
+    const { tagName, className, id } = mainAncestor;
+
+    let selector = tagName;
+    if (id) {
+      selector = `${tagName}#${id}`;
+    } else if (className) {
+      selector = `${tagName}.${className
+        .split(' ')
+        .filter(t => t.length)
+        .join('.')}`;
+    }
+
+    const ancestors = Array.from(
+      document.querySelectorAll(selector),
+    ) as HTMLElement[];
+    prevAncestors = ancestors;
+
+    ancestors.forEach(ancestor => {
+      if (ancestor === mainAncestor) {
+        ancestor.style.outline = '2px solid rgb(198 229 60)';
+      } else {
+        ancestor.style.outline = '2px solid rgb(118 88 219)';
+      }
+    });
+  }
+}
 
 const captureHandler = (event: MouseEvent) => {
   event.preventDefault();
@@ -52,6 +89,10 @@ const captureHandler = (event: MouseEvent) => {
         name: `field-${capturedElementId}`,
         element: elem,
       });
+    }
+
+    if (capturedElements.length !== 0) {
+      highlightAncestors();
     }
   }
 };
@@ -149,6 +190,8 @@ chrome.runtime.onMessage.addListener(
           elem.style.background = 'none';
 
           capturedElements.splice(idx, 1);
+
+          highlightAncestors();
         }
 
         globalState.sending = false;
